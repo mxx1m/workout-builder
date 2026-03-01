@@ -1,0 +1,2073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Builder</title>
+    <style>
+        :root {
+            --color-bg-primary: #fcfcf9;
+            --color-bg-secondary: #fffffe;
+            --color-surface: #ffffff;
+            --color-text-primary: #13343b;
+            --color-text-secondary: #626c71;
+            --color-text-muted: #a7a9a9;
+            --color-primary: #21808d;
+            --color-primary-hover: #1d7480;
+            --color-primary-active: #1a6873;
+            --color-border: rgba(94, 82, 64, 0.2);
+            --color-card-bg: #f5f5f5;
+            --color-success: #21808d;
+            --color-error: #c0152f;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            --radius-base: 8px;
+            --radius-lg: 12px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-bg-primary: #1f2121;
+                --color-bg-secondary: #262828;
+                --color-surface: #262828;
+                --color-text-primary: #f5f5f5;
+                --color-text-secondary: rgba(167, 169, 169, 0.7);
+                --color-text-muted: #777c7c;
+                --color-primary: #32b8c6;
+                --color-primary-hover: #2da6b2;
+                --color-primary-active: #2996a1;
+                --color-border: rgba(119, 124, 124, 0.3);
+                --color-card-bg: #1e293b;
+                --color-success: #32b8c6;
+                --color-error: #ff5459;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .hamburger {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--color-text-primary);
+            padding: 0.5rem;
+        }
+
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .manage-exercises-btn {
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .manage-exercises-btn:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .tab {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 0.75rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+
+        .day-selector {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: var(--color-bg-primary);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .day-selector::-webkit-scrollbar {
+            display: none;
+        }
+
+        .day-btn {
+            flex: 1;
+            min-width: 0;
+            padding: 0.75rem 0.5rem;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--color-text-primary);
+            transition: all 0.2s;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .day-btn.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 1rem;
+        }
+
+        .exercise-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .exercise-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .exercise-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            color: var(--color-text-muted);
+            font-size: 1.25rem;
+            line-height: 1;
+            padding: 0.25rem;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .exercise-info {
+            flex: 1;
+        }
+
+        .exercise-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .exercise-muscles {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+        }
+
+        .exercise-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.25rem;
+            color: var(--color-text-secondary);
+            font-size: 1.125rem;
+        }
+
+        .icon-btn:hover {
+            color: var(--color-primary);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .input-label {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            font-weight: 500;
+        }
+
+        .input-field {
+            padding: 0.5rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            font-size: 0.875rem;
+        }
+
+        .input-field:focus {
+            outline: 2px solid var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .add-exercise-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--color-surface);
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .add-exercise-btn:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .rest-day-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .rest-day-toggle {
+            margin-bottom: 1rem;
+        }
+
+        .toggle-label {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .toggle-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .toggle-btn {
+            padding: 0.5rem 1.5rem;
+            border: 1px solid var(--color-border);
+            background: var(--color-surface);
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            color: var(--color-text-primary);
+            font-size: 0.875rem;
+        }
+
+        .toggle-btn.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        .notes-section {
+            margin-top: 1rem;
+        }
+
+        .notes-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .overview-section {
+            display: none;
+        }
+
+        .overview-section.active {
+            display: block;
+        }
+
+        .overview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .overview-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .muscle-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .muscle-table thead {
+            background: var(--color-bg-secondary);
+        }
+
+        .muscle-table th {
+            padding: 1rem;
+            text-align: left;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+        }
+
+        .muscle-table td {
+            padding: 1rem;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .muscle-table tr:hover {
+            background: var(--color-bg-primary);
+        }
+
+        .target-input {
+            width: 60px;
+            padding: 0.25rem 0.5rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            font-size: 0.875rem;
+        }
+
+        .diff-positive {
+            color: var(--color-success);
+            font-weight: 600;
+        }
+
+        .diff-negative {
+            color: var(--color-error);
+            font-weight: 600;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: var(--color-surface);
+            border-right: 1px solid var(--color-border);
+            transition: left 0.3s;
+            z-index: 200;
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close-sidebar {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--color-text-primary);
+        }
+
+        .sidebar-content {
+            padding: 1.5rem;
+        }
+
+        .plan-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .plan-item {
+            padding: 1rem;
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .plan-item.active {
+            border-color: var(--color-primary);
+            background: rgba(33, 128, 141, 0.1);
+        }
+
+        .plan-info {
+            flex: 1;
+        }
+
+        .plan-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .plan-date {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+        }
+
+        .new-plan-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 1rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            font-size: 0.875rem;
+        }
+
+        .form-input:focus {
+            outline: 2px solid var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-primary {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .btn-secondary {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--color-surface);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-bg-primary);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .exercise-category {
+            margin-bottom: 1.5rem;
+        }
+
+        .category-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .exercise-option {
+            padding: 0.75rem;
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+        }
+
+        .exercise-option:hover {
+            border-color: var(--color-primary);
+            background: rgba(33, 128, 141, 0.05);
+        }
+
+        .help-section {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .help-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .help-list {
+            padding-left: 1.5rem;
+        }
+
+        .help-list li {
+            margin-bottom: 0.5rem;
+            color: var(--color-text-secondary);
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 150;
+        }
+
+        .overlay.open {
+            display: block;
+        }
+
+        .sortable-ghost {
+            opacity: 0.4;
+        }
+
+        .sortable-th {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .sortable-th:hover {
+            color: var(--color-primary);
+        }
+
+        .sort-icon {
+            margin-left: 0.25rem;
+            font-size: 0.75rem;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .sidebar-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sidebar-btn:hover {
+            border-color: var(--color-primary);
+            background: rgba(33, 128, 141, 0.05);
+        }
+
+        .theme-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        .theme-select:focus {
+            outline: 2px solid var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .plan-actions {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        [data-theme="light"] {
+            --color-bg-primary: #fcfcf9;
+            --color-bg-secondary: #fffffe;
+            --color-surface: #ffffff;
+            --color-text-primary: #13343b;
+            --color-text-secondary: #626c71;
+            --color-text-muted: #a7a9a9;
+            --color-primary: #21808d;
+            --color-primary-hover: #1d7480;
+            --color-primary-active: #1a6873;
+            --color-border: rgba(94, 82, 64, 0.2);
+            --color-card-bg: #f5f5f5;
+            --color-success: #21808d;
+            --color-error: #c0152f;
+        }
+
+        [data-theme="dark"] {
+            --color-bg-primary: #1f2121;
+            --color-bg-secondary: #262828;
+            --color-surface: #262828;
+            --color-text-primary: #f5f5f5;
+            --color-text-secondary: rgba(167, 169, 169, 0.7);
+            --color-text-muted: #777c7c;
+            --color-primary: #32b8c6;
+            --color-primary-hover: #2da6b2;
+            --color-primary-active: #2996a1;
+            --color-border: rgba(119, 124, 124, 0.3);
+            --color-card-bg: #1e293b;
+            --color-success: #32b8c6;
+            --color-error: #ff5459;
+        }
+
+        @media (max-width: 768px) {
+            .exercise-inputs {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="header-top">
+                <button class="hamburger" onclick="toggleSidebar()">☰</button>
+                <h1 class="header-title">Workout Builder</h1>
+                <button class="manage-exercises-btn" onclick="openExerciseManager()">Manage Exercises</button>
+            </div>
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab(event, 'week')">Week</button>
+                <button class="tab" onclick="switchTab(event, 'overview')">Overview</button>
+            </div>
+        </header>
+
+        <div class="day-selector" id="daySelector"></div>
+
+        <main class="main-content">
+            <div id="weekView" class="week-view"></div>
+            <div id="overviewView" class="overview-section"></div>
+        </main>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2 class="sidebar-title">Menu</h2>
+            <button class="close-sidebar" onclick="toggleSidebar()">×</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Plans</div>
+                <div class="plan-list" id="planList"></div>
+                <button class="new-plan-btn" onclick="createNewPlan()">+ New Plan</button>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Targets</div>
+                <button class="sidebar-btn" onclick="openTargetsModal()">
+                    <span>🎯</span>
+                    <span>Weekly Targets</span>
+                </button>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Data</div>
+                <button class="sidebar-btn" onclick="openExportWorkoutsModal()">
+                    <span>📤</span>
+                    <span>Export Workouts</span>
+                </button>
+                <button class="sidebar-btn" onclick="importWorkouts()">
+                    <span>📥</span>
+                    <span>Import Workouts</span>
+                </button>
+                <button class="sidebar-btn" onclick="exportTargets()">
+                    <span>📤</span>
+                    <span>Export Targets</span>
+                </button>
+                <button class="sidebar-btn" onclick="importTargets()">
+                    <span>📥</span>
+                    <span>Import Targets</span>
+                </button>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Settings</div>
+                <label class="form-label" style="margin-bottom: 0.5rem;">Theme</label>
+                <select class="theme-select" onchange="changeTheme(this.value)" id="themeSelect">
+                    <option value="system">System</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <div class="modal" id="addExerciseModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Exercise</h3>
+                <button class="close-sidebar" onclick="closeAddExerciseModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="search-input" id="exerciseSearch" placeholder="Search exercises..." oninput="filterExercises()">
+                <div id="exerciseCategories"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="exerciseManagerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Manage Exercises</h3>
+                <button class="close-sidebar" onclick="closeExerciseManager()">×</button>
+            </div>
+            <div class="modal-body" id="exerciseManagerBody"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="targetsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Weekly Targets</h3>
+                <button class="close-sidebar" onclick="closeTargetsModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <table class="muscle-table" style="margin-bottom: 0;">
+                    <thead>
+                        <tr>
+                            <th class="sortable-th" onclick="sortTargets('muscle')">
+                                Muscle<span class="sort-icon" id="targetsSortMuscle"></span>
+                            </th>
+                            <th class="sortable-th" onclick="sortTargets('target')">
+                                Target<span class="sort-icon" id="targetsSortTarget"></span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="targetsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="exportWorkoutsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Export Workouts</h3>
+                <button class="close-sidebar" onclick="closeExportWorkoutsModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem; border: 1px solid var(--color-border); border-radius: var(--radius-base); margin-bottom: 0.5rem;">
+                        <input type="checkbox" id="selectAllPlans" onchange="toggleSelectAllPlans(this.checked)" style="width: 18px; height: 18px; cursor: pointer;">
+                        <span style="font-weight: 600;">Select All</span>
+                    </label>
+                </div>
+                <div id="exportPlansList"></div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeExportWorkoutsModal()">Cancel</button>
+                    <button type="button" class="btn-primary" onclick="performExportWorkouts()">Export</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="replaceExerciseModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Replace Exercise</h3>
+                <button class="close-sidebar" onclick="closeReplaceExerciseModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="search-input" id="replaceExerciseSearch" placeholder="Search exercises..." oninput="filterReplaceExercises()">
+                <div id="replaceExerciseCategories"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="editExerciseModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Exercise</h3>
+                <button class="close-sidebar" onclick="closeEditExerciseModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="editExerciseForm" onsubmit="saveExercise(event)">
+                    <div class="form-group">
+                        <label class="form-label">Exercise Name</label>
+                        <input type="text" class="form-input" id="editExerciseName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <input type="text" class="form-input" id="editExerciseCategory" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Primary Muscles (comma separated)</label>
+                        <input type="text" class="form-input" id="editExercisePrimary" required placeholder="e.g., Chest, Front Delts">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Secondary Muscles (comma separated)</label>
+                        <input type="text" class="form-input" id="editExerciseSecondary" placeholder="e.g., Triceps">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tutorial URL or Notes</label>
+                        <input type="text" class="form-input" id="editExerciseTutorial" placeholder="Optional">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="closeEditExerciseModal()">Cancel</button>
+                        <button type="submit" class="btn-primary">Save Exercise</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script>
+        const MUSCLES = [
+            'Lats', 'Upper Back', 'Chest', 'Rear Delts', 'Side Delts', 'Front Delts',
+            'Biceps', 'Triceps', 'Forearms', 'Upper Traps', 'Lower Back', 'Abs',
+            'Obliques', 'Glutes', 'Quads', 'Hamstrings', 'Calves', 'Adductors'
+        ];
+
+        const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+        const SEED_EXERCISES = [
+            { id: 'ex1', name: '45° Incline Bench Press', category: 'Chest', primaryMuscles: ['Chest', 'Front Delts'], secondaryMuscles: ['Triceps'], tutorial: '' },
+            { id: 'ex2', name: 'Dumbbell Bench Press', category: 'Chest', primaryMuscles: ['Chest'], secondaryMuscles: ['Front Delts', 'Triceps'], tutorial: '' },
+            { id: 'ex3', name: '45° Incline Dumbbell Fly', category: 'Chest', primaryMuscles: ['Chest', 'Front Delts'], secondaryMuscles: [], tutorial: '' },
+            { id: 'ex4', name: 'Dumbbell Fly', category: 'Chest', primaryMuscles: ['Chest'], secondaryMuscles: ['Front Delts'], tutorial: '' },
+            { id: 'ex5', name: 'Seated Neutral Grip Dumbbell Reverse Fly', category: 'Rear Delts', primaryMuscles: ['Rear Delts'], secondaryMuscles: ['Side Delts', 'Upper Back', 'Upper Traps'], tutorial: '' },
+            { id: 'ex6', name: 'Seated Overhand Grip Dumbbell Reverse Fly', category: 'Rear Delts', primaryMuscles: ['Rear Delts'], secondaryMuscles: ['Side Delts', 'Upper Back', 'Upper Traps'], tutorial: '' },
+            { id: 'ex7', name: 'Incline Bicep Curl', category: 'Biceps', primaryMuscles: ['Biceps'], secondaryMuscles: [], tutorial: '' },
+            { id: 'ex8', name: 'Hammer Curl', category: 'Biceps', primaryMuscles: ['Biceps'], secondaryMuscles: [], tutorial: '' },
+            { id: 'ex9', name: 'Weighted Pull-Up', category: 'Lats', primaryMuscles: ['Biceps', 'Lats'], secondaryMuscles: ['Forearms', 'Rear Delts', 'Upper Back'], tutorial: '' },
+            { id: 'ex10', name: 'Weighted Chin-Up', category: 'Lats', primaryMuscles: ['Biceps', 'Lats'], secondaryMuscles: ['Forearms', 'Rear Delts', 'Upper Back'], tutorial: '' },
+            { id: 'ex11', name: 'Dumbbell Overhead Press', category: 'Front Delts', primaryMuscles: ['Front Delts'], secondaryMuscles: ['Side Delts', 'Triceps', 'Upper Traps'], tutorial: '' },
+            { id: 'ex12', name: 'Overhead DB Triceps Extension', category: 'Triceps', primaryMuscles: ['Triceps'], secondaryMuscles: [], tutorial: '' },
+            { id: 'ex13', name: 'Dumbbell Pullover', category: 'Lats', primaryMuscles: ['Lats'], secondaryMuscles: ['Chest', 'Rear Delts'], tutorial: '' },
+            { id: 'ex14', name: 'Lateral Raises', category: 'Side Delts', primaryMuscles: ['Side Delts'], secondaryMuscles: ['Front Delts', 'Upper Traps'], tutorial: '' },
+            { id: 'ex15', name: 'Low Incline Chest-Supported Elbows-In Dumbbell Row', category: 'Lats', primaryMuscles: ['Lats', 'Rear Delts', 'Upper Back'], secondaryMuscles: ['Biceps', 'Forearms', 'Upper Traps'], tutorial: '' },
+            { id: 'ex16', name: 'Diamond Push-Up', category: 'Triceps', primaryMuscles: ['Triceps'], secondaryMuscles: ['Chest', 'Front Delts'], tutorial: '' },
+            { id: 'ex17', name: 'Push-Up', category: 'Chest', primaryMuscles: ['Chest'], secondaryMuscles: ['Front Delts', 'Triceps'], tutorial: '' },
+            { id: 'ex18', name: 'Dumbbell Bulgarian Split Squats', category: 'Quads', primaryMuscles: ['Adductors', 'Glutes', 'Quads'], secondaryMuscles: ['Forearms'], tutorial: '' },
+            { id: 'ex19', name: 'Dumbbell Romanian Deadlift', category: 'Hamstrings', primaryMuscles: ['Adductors', 'Glutes', 'Hamstrings'], secondaryMuscles: ['Forearms', 'Lower Back', 'Upper Back'], tutorial: '' },
+            { id: 'ex20', name: 'Goblet Squat', category: 'Quads', primaryMuscles: ['Adductors', 'Glutes', 'Quads'], secondaryMuscles: ['Lower Back', 'Upper Back'], tutorial: '' },
+            { id: 'ex21', name: 'Standing Dumbbell Calf Raises', category: 'Calves', primaryMuscles: ['Calves'], secondaryMuscles: ['Forearms'], tutorial: '' },
+            { id: 'ex22', name: 'Dumbbell Walking Lunges', category: 'Quads', primaryMuscles: ['Adductors', 'Glutes', 'Quads'], secondaryMuscles: ['Forearms'], tutorial: '' },
+            { id: 'ex23', name: 'Weighted Crunch', category: 'Abs', primaryMuscles: ['Abs'], secondaryMuscles: ['Obliques'], tutorial: '' }
+        ];
+
+        let state = {
+            exercises: [],
+            plans: [],
+            currentPlanId: null,
+            currentDay: 'Monday',
+            currentTab: 'week',
+            targets: {},
+            theme: 'system',
+            sortPrefs: {
+                overview: { column: 'muscle', direction: 'asc' },
+                targets: { column: 'muscle', direction: 'asc' }
+            }
+        };
+
+        function init() {
+            loadState();
+            if (state.exercises.length === 0) {
+                state.exercises = [...SEED_EXERCISES];
+            }
+            if (state.plans.length === 0) {
+                const defaultPlan = createPlan('My First Plan');
+                state.plans.push(defaultPlan);
+                state.currentPlanId = defaultPlan.id;
+            }
+            if (Object.keys(state.targets).length === 0) {
+                MUSCLES.forEach(muscle => {
+                    state.targets[muscle] = 0;
+                });
+            }
+            if (!state.theme) {
+                state.theme = 'system';
+            }
+            if (!state.sortPrefs) {
+                state.sortPrefs = {
+                    overview: { column: 'muscle', direction: 'asc' },
+                    targets: { column: 'muscle', direction: 'asc' }
+                };
+            }
+            applyTheme();
+            saveState();
+            renderAll();
+        }
+
+        function createPlan(name) {
+            const plan = {
+                id: 'plan_' + Date.now(),
+                name: name,
+                lastUpdated: new Date().toISOString(),
+                week: {}
+            };
+            DAYS.forEach(day => {
+                plan.week[day] = {
+                    isRest: true,
+                    notes: '',
+                    exercises: []
+                };
+            });
+            return plan;
+        }
+
+        function getCurrentPlan() {
+            return state.plans.find(p => p.id === state.currentPlanId);
+        }
+
+        function renderAll() {
+            renderDaySelector();
+            renderWeekView();
+            renderOverview();
+            renderPlanList();
+        }
+
+        function renderDaySelector() {
+            const container = document.getElementById('daySelector');
+            container.innerHTML = DAYS.map(day => `
+                <button class="day-btn ${day === state.currentDay ? 'active' : ''}" onclick="selectDay('${day}')">
+                    ${day.substring(0, 3)}
+                </button>
+            `).join('');
+        }
+
+        function selectDay(day) {
+            state.currentDay = day;
+            renderDaySelector();
+            renderWeekView();
+        }
+
+        function renderWeekView() {
+            const container = document.getElementById('weekView');
+            const plan = getCurrentPlan();
+            const dayData = plan.week[state.currentDay];
+
+            if (dayData.isRest) {
+                container.innerHTML = `
+                    <div class="rest-day-card">
+                        <div class="rest-day-toggle">
+                            <label class="toggle-label">Day Type</label>
+                            <div class="toggle-buttons">
+                                <button class="toggle-btn" onclick="toggleDayType(false)">Training</button>
+                                <button class="toggle-btn active" onclick="toggleDayType(true)">Rest</button>
+                            </div>
+                        </div>
+                        <div class="notes-section">
+                            <label class="toggle-label">Notes</label>
+                            <textarea class="notes-textarea" placeholder="Add notes for rest day..." onchange="updateDayNotes(this.value)">${dayData.notes}</textarea>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const exerciseListHtml = dayData.exercises.map((ex, exIndex) => {
+                    const exercise = state.exercises.find(e => e.id === ex.exerciseId);
+                    const exerciseName = exercise ? exercise.name : 'Unknown exercise (deleted)';
+                    const muscles = exercise ? `${exercise.primaryMuscles.join(', ')}` : '';
+                    
+                    if (!Array.isArray(ex.sets)) {
+                        ex.sets = [{ reps: ex.reps || '', rir: ex.rir || '', load: ex.load || '' }];
+                    }
+                    
+                    const setsHtml = ex.sets.map((set, setIndex) => `
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; padding: 0.5rem; background: var(--color-bg-primary); border-radius: var(--radius-base);">
+                            <div style="min-width: 60px; font-weight: 600; color: var(--color-text-secondary);">Set ${setIndex + 1}</div>
+                            <div class="input-group" style="flex: 1;">
+                                <input type="text" class="input-field" value="${set.reps || ''}" onchange="updateSetField(${exIndex}, ${setIndex}, 'reps', this.value)" placeholder="8-12" style="margin: 0;">
+                            </div>
+                            <div class="input-group" style="flex: 1;">
+                                <input type="number" class="input-field" value="${set.rir || ''}" onchange="updateSetField(${exIndex}, ${setIndex}, 'rir', this.value)" placeholder="1" style="margin: 0;">
+                            </div>
+                            <div class="input-group" style="flex: 1;">
+                                <input type="text" class="input-field" value="${set.load || ''}" onchange="updateSetField(${exIndex}, ${setIndex}, 'load', this.value)" placeholder="20kg" style="margin: 0;">
+                            </div>
+                            ${ex.sets.length > 1 ? `<button class="icon-btn" onclick="removeSet(${exIndex}, ${setIndex})" style="color: var(--color-error);">×</button>` : ''}
+                        </div>
+                    `).join('');
+                    
+                    return `
+                        <div class="exercise-card" draggable="true" data-index="${exIndex}">
+                            <div class="exercise-header">
+                                <div class="drag-handle">⋮⋮</div>
+                                <div class="exercise-info">
+                                    <div class="exercise-name">${exerciseName}</div>
+                                    <div class="exercise-muscles">${muscles}</div>
+                                </div>
+                                <div class="exercise-actions">
+                                    ${exercise && exercise.tutorial ? `<button class="icon-btn" onclick="showTutorial('${ex.exerciseId}')">ℹ️</button>` : ''}
+                                    <button class="icon-btn" onclick="openReplaceExerciseModal(${exIndex})" title="Replace exercise">🔄</button>
+                                    <button class="icon-btn" onclick="removeExercise(${exIndex})">🗑️</button>
+                                </div>
+                            </div>
+                            <div style="margin-top: 0.75rem;">
+                                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; padding-left: 60px; font-size: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">
+                                    <div style="flex: 1;">Reps</div>
+                                    <div style="flex: 1;">RIR</div>
+                                    <div style="flex: 1;">Load</div>
+                                    <div style="width: 28px;"></div>
+                                </div>
+                                ${setsHtml}
+                                <button class="add-exercise-btn" onclick="addSet(${exIndex})" style="margin-top: 0.5rem; padding: 0.5rem; font-size: 0.875rem;">
+                                    + Add Set
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                container.innerHTML = `
+                    <div class="rest-day-toggle">
+                        <label class="toggle-label">Day Type</label>
+                        <div class="toggle-buttons">
+                            <button class="toggle-btn active" onclick="toggleDayType(false)">Training</button>
+                            <button class="toggle-btn" onclick="toggleDayType(true)">Rest</button>
+                        </div>
+                    </div>
+                    <div class="notes-section" style="margin-bottom: 1rem;">
+                        <label class="toggle-label">Notes</label>
+                        <textarea class="notes-textarea" placeholder="Add notes for training day..." onchange="updateDayNotes(this.value)">${dayData.notes}</textarea>
+                    </div>
+                    <div class="exercise-list" id="exerciseList">
+                        ${exerciseListHtml}
+                    </div>
+                    <button class="add-exercise-btn" onclick="openAddExerciseModal()">
+                        <span>+</span> Add Exercise
+                    </button>
+                `;
+
+                setupDragAndDrop();
+            }
+        }
+
+        function toggleDayType(isRest) {
+            const plan = getCurrentPlan();
+            plan.week[state.currentDay].isRest = isRest;
+            if (!isRest && plan.week[state.currentDay].exercises.length === 0) {
+                plan.week[state.currentDay].exercises = [];
+            }
+            saveState();
+            renderWeekView();
+            renderOverview();
+        }
+
+        function updateDayNotes(notes) {
+            const plan = getCurrentPlan();
+            plan.week[state.currentDay].notes = notes;
+            saveState();
+        }
+
+        function removeExercise(index) {
+            const plan = getCurrentPlan();
+            plan.week[state.currentDay].exercises.splice(index, 1);
+            saveState();
+            renderWeekView();
+            renderOverview();
+        }
+
+        function showTutorial(exerciseId) {
+            const exercise = state.exercises.find(e => e.id === exerciseId);
+            if (exercise && exercise.tutorial) {
+                alert(exercise.tutorial);
+            }
+        }
+
+        function setupDragAndDrop() {
+            const list = document.getElementById('exerciseList');
+            if (!list) return;
+
+            new Sortable(list, {
+                animation: 150,
+                handle: '.drag-handle',
+                ghostClass: 'sortable-ghost',
+                onEnd: function(evt) {
+                    const plan = getCurrentPlan();
+                    const exercises = plan.week[state.currentDay].exercises;
+                    const [movedExercise] = exercises.splice(evt.oldIndex, 1);
+                    exercises.splice(evt.newIndex, 0, movedExercise);
+                    saveState();
+                    renderWeekView();
+                    renderOverview();
+                }
+            });
+        }
+
+        function openAddExerciseModal() {
+            const modal = document.getElementById('addExerciseModal');
+            modal.classList.add('open');
+            renderExerciseCategories();
+        }
+
+        function closeAddExerciseModal() {
+            const modal = document.getElementById('addExerciseModal');
+            modal.classList.remove('open');
+            document.getElementById('exerciseSearch').value = '';
+        }
+
+        function renderExerciseCategories() {
+            const container = document.getElementById('exerciseCategories');
+            const searchTerm = document.getElementById('exerciseSearch').value.toLowerCase();
+            
+            const categories = {};
+            state.exercises.forEach(ex => {
+                if (!categories[ex.category]) {
+                    categories[ex.category] = [];
+                }
+                categories[ex.category].push(ex);
+            });
+
+            const html = Object.keys(categories).map(category => {
+                const exercises = categories[category].filter(ex => 
+                    ex.name.toLowerCase().includes(searchTerm)
+                );
+                if (exercises.length === 0) return '';
+                
+                return `
+                    <div class="exercise-category">
+                        <div class="category-title">${category}</div>
+                        ${exercises.map(ex => `
+                            <div class="exercise-option" onclick="addExerciseToDay('${ex.id}')">
+                                <div style="font-weight: 600;">${ex.name}</div>
+                                <div style="font-size: 0.75rem; color: var(--color-text-secondary);">
+                                    ${ex.primaryMuscles.join(', ')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html || '<p style="color: var(--color-text-secondary);">No exercises found</p>';
+        }
+
+        function filterExercises() {
+            renderExerciseCategories();
+        }
+
+        function addExerciseToDay(exerciseId) {
+            const plan = getCurrentPlan();
+            plan.week[state.currentDay].exercises.push({
+                exerciseId: exerciseId,
+                sets: [{ reps: '', rir: '', load: '' }]
+            });
+            saveState();
+            closeAddExerciseModal();
+            renderWeekView();
+        }
+
+        function addSet(exerciseIndex) {
+            const plan = getCurrentPlan();
+            const exercise = plan.week[state.currentDay].exercises[exerciseIndex];
+            const lastSet = exercise.sets[exercise.sets.length - 1] || { reps: '', rir: '', load: '' };
+            exercise.sets.push({ ...lastSet });
+            saveState();
+            renderWeekView();
+        }
+
+        function removeSet(exerciseIndex, setIndex) {
+            const plan = getCurrentPlan();
+            const exercise = plan.week[state.currentDay].exercises[exerciseIndex];
+            if (exercise.sets.length > 1) {
+                exercise.sets.splice(setIndex, 1);
+                saveState();
+                renderWeekView();
+                renderOverview();
+            }
+        }
+
+        function updateSetField(exerciseIndex, setIndex, field, value) {
+            const plan = getCurrentPlan();
+            const exercise = plan.week[state.currentDay].exercises[exerciseIndex];
+            exercise.sets[setIndex][field] = value;
+            
+            if (setIndex === 0) {
+                for (let i = 1; i < exercise.sets.length; i++) {
+                    if (!exercise.sets[i].manuallyEdited) {
+                        exercise.sets[i][field] = value;
+                    }
+                }
+            } else {
+                exercise.sets[setIndex].manuallyEdited = true;
+            }
+            
+            saveState();
+            renderOverview();
+        }
+
+        function renderOverview() {
+            const container = document.getElementById('overviewView');
+            const setsPerMuscle = calculateSetsPerMuscle();
+
+            const sortPref = state.sortPrefs.overview;
+            const sortIcon = sortPref.direction === 'asc' ? '▲' : '▼';
+
+            const data = MUSCLES.map(muscle => ({
+                muscle,
+                actual: setsPerMuscle[muscle] || 0,
+                target: state.targets[muscle] || 0,
+                diff: (setsPerMuscle[muscle] || 0) - (state.targets[muscle] || 0)
+            }));
+
+            data.sort((a, b) => {
+                let valA, valB;
+                if (sortPref.column === 'muscle') {
+                    valA = a.muscle;
+                    valB = b.muscle;
+                    return sortPref.direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else {
+                    valA = a[sortPref.column];
+                    valB = b[sortPref.column];
+                    return sortPref.direction === 'asc' ? valA - valB : valB - valA;
+                }
+            });
+
+            const rows = data.map(row => {
+                const diffClass = row.diff > 0 ? 'diff-positive' : row.diff < 0 ? 'diff-negative' : '';
+                const diffSign = row.diff > 0 ? '+' : '';
+
+                return `
+                    <tr>
+                        <td>${row.muscle}</td>
+                        <td>${row.actual.toFixed(1)}</td>
+                        <td>${row.target.toFixed(1)}</td>
+                        <td class="${diffClass}">${diffSign}${row.diff.toFixed(1)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="overview-header">
+                    <h2 class="overview-title">Sets per Muscle Group</h2>
+                </div>
+                <table class="muscle-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable-th" onclick="sortOverview('muscle')">
+                                Muscle${sortPref.column === 'muscle' ? `<span class="sort-icon">${sortIcon}</span>` : ''}
+                            </th>
+                            <th class="sortable-th" onclick="sortOverview('actual')">
+                                Actual${sortPref.column === 'actual' ? `<span class="sort-icon">${sortIcon}</span>` : ''}
+                            </th>
+                            <th class="sortable-th" onclick="sortOverview('target')">
+                                Target${sortPref.column === 'target' ? `<span class="sort-icon">${sortIcon}</span>` : ''}
+                            </th>
+                            <th class="sortable-th" onclick="sortOverview('diff')">
+                                Difference${sortPref.column === 'diff' ? `<span class="sort-icon">${sortIcon}</span>` : ''}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+                <div class="help-section" style="margin-top: 2rem;">
+                    <h3 class="help-title">How to Use</h3>
+                    <ul class="help-list">
+                        <li>Switch between <strong>Week</strong> and <strong>Overview</strong> tabs at the top</li>
+                        <li>In Week view, select a day and toggle between Training/Rest</li>
+                        <li>Add exercises using the "+ Add Exercise" button and search/select from the list</li>
+                        <li>Drag exercises using the ⋮⋮ handle to reorder them</li>
+                        <li>Set your weekly targets in the Overview tab - the app calculates actual sets automatically (Primary muscles = 1.0 set, Secondary = 0.5 set)</li>
+                    </ul>
+                </div>
+            `;
+        }
+
+        function calculateSetsPerMuscle() {
+            const plan = getCurrentPlan();
+            const totals = {};
+            MUSCLES.forEach(m => totals[m] = 0);
+
+            DAYS.forEach(day => {
+                const dayData = plan.week[day];
+                if (!dayData.isRest) {
+                    dayData.exercises.forEach(ex => {
+                        const exercise = state.exercises.find(e => e.id === ex.exerciseId);
+                        if (exercise && ex.sets && ex.sets.length > 0) {
+                            const numSets = ex.sets.length;
+                            exercise.primaryMuscles.forEach(muscle => {
+                                totals[muscle] = (totals[muscle] || 0) + numSets;
+                            });
+                            exercise.secondaryMuscles.forEach(muscle => {
+                                totals[muscle] = (totals[muscle] || 0) + (numSets * 0.5);
+                            });
+                        }
+                    });
+                }
+            });
+
+            return totals;
+        }
+
+        function sortOverview(column) {
+            const sortPref = state.sortPrefs.overview;
+            if (sortPref.column === column) {
+                sortPref.direction = sortPref.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortPref.column = column;
+                sortPref.direction = 'asc';
+            }
+            saveState();
+            renderOverview();
+        }
+
+        function switchTab(e, tab) {
+            state.currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+
+            if (tab === 'week') {
+                document.getElementById('daySelector').style.display = 'flex';
+                document.getElementById('weekView').style.display = 'block';
+                document.getElementById('overviewView').style.display = 'none';
+            } else {
+                document.getElementById('daySelector').style.display = 'none';
+                document.getElementById('weekView').style.display = 'none';
+                document.getElementById('overviewView').style.display = 'block';
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+
+        function renderPlanList() {
+            const container = document.getElementById('planList');
+            container.innerHTML = state.plans.map(plan => `
+                <div class="plan-item ${plan.id === state.currentPlanId ? 'active' : ''}">
+                    <div class="plan-info" onclick="switchPlan('${plan.id}')">
+                        <div class="plan-name">${plan.name}</div>
+                        <div class="plan-date">Updated: ${new Date(plan.lastUpdated).toLocaleDateString()}</div>
+                    </div>
+                    <div class="plan-actions">
+                        <button class="icon-btn" onclick="event.stopPropagation(); duplicatePlan('${plan.id}')" title="Duplicate">📋</button>
+                        ${plan.id !== state.currentPlanId ? `<button class="icon-btn" onclick="event.stopPropagation(); deletePlan(event, '${plan.id}')" title="Delete">🗑️</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function switchPlan(planId) {
+            state.currentPlanId = planId;
+            saveState();
+            closeSidebar();
+            renderAll();
+        }
+
+        function createNewPlan() {
+            const name = prompt('Enter plan name:');
+            if (name) {
+                const newPlan = createPlan(name);
+                state.plans.push(newPlan);
+                state.currentPlanId = newPlan.id;
+                saveState();
+                renderAll();
+                closeSidebar();
+            }
+        }
+
+        function deletePlan(event, planId) {
+            event.stopPropagation();
+            if (confirm('Delete this plan?')) {
+                state.plans = state.plans.filter(p => p.id !== planId);
+                if (state.currentPlanId === planId) {
+                    state.currentPlanId = state.plans[0]?.id || null;
+                }
+                saveState();
+                renderPlanList();
+            }
+        }
+
+        function openExerciseManager() {
+            const modal = document.getElementById('exerciseManagerModal');
+            modal.classList.add('open');
+            renderExerciseManager();
+        }
+
+        function closeExerciseManager() {
+            const modal = document.getElementById('exerciseManagerModal');
+            modal.classList.remove('open');
+        }
+
+        function renderExerciseManager() {
+            const container = document.getElementById('exerciseManagerBody');
+            container.innerHTML = `
+                <button class="new-plan-btn" style="margin-bottom: 1rem;" onclick="event.preventDefault(); addNewExercise();">+ Add New Exercise</button>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    ${state.exercises.map(ex => `
+                        <div style="padding: 1rem; background: var(--color-bg-primary); border: 1px solid var(--color-border); border-radius: var(--radius-base);">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                <div style="font-weight: 600;">${ex.name}</div>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button class="icon-btn" onclick="event.preventDefault(); editExercise('${ex.id}')">✏️</button>
+                                    <button class="icon-btn" onclick="event.preventDefault(); deleteExercise('${ex.id}')">🗑️</button>
+                                </div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--color-text-secondary);">
+                                <div><strong>Primary:</strong> ${ex.primaryMuscles.join(', ')}</div>
+                                <div><strong>Secondary:</strong> ${ex.secondaryMuscles.join(', ') || 'None'}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function addNewExercise() {
+            editingExerciseId = 'new_' + Date.now();
+            document.getElementById('editExerciseName').value = '';
+            document.getElementById('editExerciseCategory').value = '';
+            document.getElementById('editExercisePrimary').value = '';
+            document.getElementById('editExerciseSecondary').value = '';
+            document.getElementById('editExerciseTutorial').value = '';
+
+            document.getElementById('editExerciseModal').classList.add('open');
+        }
+
+        let editingExerciseId = null;
+
+        function editExercise(exerciseId) {
+            const exercise = state.exercises.find(e => e.id === exerciseId);
+            if (!exercise) return;
+
+            editingExerciseId = exerciseId;
+            document.getElementById('editExerciseName').value = exercise.name;
+            document.getElementById('editExerciseCategory').value = exercise.category;
+            document.getElementById('editExercisePrimary').value = exercise.primaryMuscles.join(', ');
+            document.getElementById('editExerciseSecondary').value = exercise.secondaryMuscles.join(', ');
+            document.getElementById('editExerciseTutorial').value = exercise.tutorial;
+
+            document.getElementById('editExerciseModal').classList.add('open');
+        }
+
+        function closeEditExerciseModal() {
+            document.getElementById('editExerciseModal').classList.remove('open');
+            editingExerciseId = null;
+        }
+
+        function saveExercise(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('editExerciseName').value;
+            const category = document.getElementById('editExerciseCategory').value;
+            const primary = document.getElementById('editExercisePrimary').value.split(',').map(m => m.trim()).filter(m => m);
+            const secondary = document.getElementById('editExerciseSecondary').value.split(',').map(m => m.trim()).filter(m => m);
+            const tutorial = document.getElementById('editExerciseTutorial').value;
+
+            if (editingExerciseId.startsWith('new_')) {
+                const newExercise = {
+                    id: 'ex_' + Date.now(),
+                    name: name,
+                    category: category,
+                    primaryMuscles: primary,
+                    secondaryMuscles: secondary,
+                    tutorial: tutorial
+                };
+                state.exercises.push(newExercise);
+            } else {
+                const exercise = state.exercises.find(e => e.id === editingExerciseId);
+                if (exercise) {
+                    exercise.name = name;
+                    exercise.category = category;
+                    exercise.primaryMuscles = primary;
+                    exercise.secondaryMuscles = secondary;
+                    exercise.tutorial = tutorial;
+                }
+            }
+
+            saveState();
+            closeEditExerciseModal();
+            renderExerciseManager();
+        }
+
+        function deleteExercise(exerciseId) {
+            if (confirm('Delete this exercise? It will show as "Unknown exercise (deleted)" in existing plans.')) {
+                state.exercises = state.exercises.filter(e => e.id !== exerciseId);
+                saveState();
+                renderExerciseManager();
+            }
+        }
+
+        function saveState() {
+            try {
+                const plan = getCurrentPlan();
+                if (plan) {
+                    plan.lastUpdated = new Date().toISOString();
+                }
+                const stateString = JSON.stringify(state);
+                localStorage.setItem('workoutBuilderState', stateString);
+            } catch (e) {
+                console.error('Failed to save state:', e);
+            }
+        }
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('workoutBuilderState');
+                if (saved) {
+                    state = JSON.parse(saved);
+                }
+            } catch (e) {
+                console.error('Failed to load state:', e);
+            }
+        }
+
+        function applyTheme() {
+            const theme = state.theme || 'system';
+            const select = document.getElementById('themeSelect');
+            if (select) {
+                select.value = theme;
+            }
+
+            if (theme === 'system') {
+                document.documentElement.removeAttribute('data-theme');
+            } else {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        }
+
+        function changeTheme(theme) {
+            state.theme = theme;
+            applyTheme();
+            saveState();
+        }
+
+        function duplicatePlan(planId) {
+            const originalPlan = state.plans.find(p => p.id === planId);
+            if (!originalPlan) return;
+
+            const newPlan = {
+                id: 'plan_' + Date.now(),
+                name: originalPlan.name + ' (Copy)',
+                lastUpdated: new Date().toISOString(),
+                week: JSON.parse(JSON.stringify(originalPlan.week))
+            };
+
+            state.plans.push(newPlan);
+            state.currentPlanId = newPlan.id;
+            saveState();
+            renderAll();
+            closeSidebar();
+        }
+
+        function openTargetsModal() {
+            document.getElementById('targetsModal').classList.add('open');
+            renderTargetsTable();
+        }
+
+        function closeTargetsModal() {
+            document.getElementById('targetsModal').classList.remove('open');
+        }
+
+        function renderTargetsTable() {
+            const sortPref = state.sortPrefs.targets;
+            const data = MUSCLES.map(muscle => ({
+                muscle,
+                target: state.targets[muscle] || 0
+            }));
+
+            data.sort((a, b) => {
+                if (sortPref.column === 'muscle') {
+                    return sortPref.direction === 'asc' ? a.muscle.localeCompare(b.muscle) : b.muscle.localeCompare(a.muscle);
+                } else {
+                    return sortPref.direction === 'asc' ? a.target - b.target : b.target - a.target;
+                }
+            });
+
+            const tbody = document.getElementById('targetsTableBody');
+            tbody.innerHTML = data.map(row => `
+                <tr>
+                    <td>${row.muscle}</td>
+                    <td>
+                        <input type="number" class="target-input" value="${row.target}" step="0.5" onchange="updateTargetValue('${row.muscle}', this.value)">
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('targetsSortMuscle').textContent = sortPref.column === 'muscle' ? (sortPref.direction === 'asc' ? '▲' : '▼') : '';
+            document.getElementById('targetsSortTarget').textContent = sortPref.column === 'target' ? (sortPref.direction === 'asc' ? '▲' : '▼') : '';
+        }
+
+        function sortTargets(column) {
+            const sortPref = state.sortPrefs.targets;
+            if (sortPref.column === column) {
+                sortPref.direction = sortPref.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortPref.column = column;
+                sortPref.direction = 'asc';
+            }
+            saveState();
+            renderTargetsTable();
+        }
+
+        function updateTargetValue(muscle, value) {
+            state.targets[muscle] = parseFloat(value) || 0;
+            saveState();
+            if (state.currentTab === 'overview') {
+                renderOverview();
+            }
+        }
+
+        function openExportWorkoutsModal() {
+            document.getElementById('exportWorkoutsModal').classList.add('open');
+            renderExportPlansList();
+        }
+
+        function closeExportWorkoutsModal() {
+            document.getElementById('exportWorkoutsModal').classList.remove('open');
+        }
+
+        function renderExportPlansList() {
+            const container = document.getElementById('exportPlansList');
+            container.innerHTML = state.plans.map(plan => `
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.75rem; border: 1px solid var(--color-border); border-radius: var(--radius-base); margin-bottom: 0.5rem; background: var(--color-bg-primary);">
+                    <input type="checkbox" class="export-plan-checkbox" data-plan-id="${plan.id}" style="width: 18px; height: 18px; cursor: pointer;">
+                    <div>
+                        <div style="font-weight: 600;">${plan.name}</div>
+                        <div style="font-size: 0.75rem; color: var(--color-text-secondary);">Updated: ${new Date(plan.lastUpdated).toLocaleDateString()}</div>
+                    </div>
+                </label>
+            `).join('');
+        }
+
+        function toggleSelectAllPlans(checked) {
+            document.querySelectorAll('.export-plan-checkbox').forEach(cb => {
+                cb.checked = checked;
+            });
+        }
+
+        function performExportWorkouts() {
+            const selectedIds = Array.from(document.querySelectorAll('.export-plan-checkbox:checked')).map(cb => cb.dataset.planId);
+            
+            if (selectedIds.length === 0) {
+                alert('Please select at least one plan to export.');
+                return;
+            }
+
+            const selectedPlans = state.plans.filter(p => selectedIds.includes(p.id));
+            const usedExerciseIds = new Set();
+
+            selectedPlans.forEach(plan => {
+                DAYS.forEach(day => {
+                    if (!plan.week[day].isRest) {
+                        plan.week[day].exercises.forEach(ex => {
+                            usedExerciseIds.add(ex.exerciseId);
+                        });
+                    }
+                });
+            });
+
+            const usedExercises = state.exercises.filter(ex => usedExerciseIds.has(ex.id));
+
+            const exportData = {
+                type: 'workouts_export',
+                version: 1,
+                plans: selectedPlans,
+                exercises: usedExercises
+            };
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            const filename = `workouts_export_${dateStr}.json`;
+            downloadJSON(exportData, filename);
+
+            closeExportWorkoutsModal();
+        }
+
+        function importWorkouts() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        
+                        if (data.type !== 'workouts_export' || data.version !== 1) {
+                            alert('Invalid file format. Please select a valid workouts export file.');
+                            return;
+                        }
+
+                        const exerciseMap = {};
+                        data.exercises.forEach(importedEx => {
+                            const existing = state.exercises.find(ex => 
+                                ex.name.toLowerCase().trim() === importedEx.name.toLowerCase().trim()
+                            );
+                            
+                            if (existing) {
+                                exerciseMap[importedEx.id] = existing.id;
+                            } else {
+                                const newId = 'ex_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                                state.exercises.push({
+                                    ...importedEx,
+                                    id: newId
+                                });
+                                exerciseMap[importedEx.id] = newId;
+                            }
+                        });
+
+                        let importedCount = 0;
+                        data.plans.forEach(importedPlan => {
+                            const existingNames = state.plans.map(p => p.name.toLowerCase());
+                            let planName = importedPlan.name;
+                            if (existingNames.includes(planName.toLowerCase())) {
+                                planName = planName + ' (Imported)';
+                            }
+
+                            const newPlan = {
+                                id: 'plan_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                                name: planName,
+                                lastUpdated: new Date().toISOString(),
+                                week: {}
+                            };
+
+                            DAYS.forEach(day => {
+                                const dayData = importedPlan.week[day];
+                                newPlan.week[day] = {
+                                    isRest: dayData.isRest,
+                                    notes: dayData.notes,
+                                    exercises: dayData.exercises.map(ex => ({
+                                        ...ex,
+                                        exerciseId: exerciseMap[ex.exerciseId] || ex.exerciseId
+                                    }))
+                                };
+                            });
+
+                            state.plans.push(newPlan);
+                            importedCount++;
+                        });
+
+                        saveState();
+                        renderAll();
+                        alert(`Successfully imported ${importedCount} plan(s).`);
+
+                    } catch (error) {
+                        console.error('Import error:', error);
+                        alert('Failed to import file. Please ensure it is a valid JSON file.');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function exportTargets() {
+            const exportData = {
+                type: 'targets_export',
+                version: 1,
+                targets: state.targets
+            };
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            const filename = `targets_export_${dateStr}.json`;
+            downloadJSON(exportData, filename);
+        }
+
+        function importTargets() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        
+                        if (data.type !== 'targets_export' || data.version !== 1) {
+                            alert('Invalid file format. Please select a valid targets export file.');
+                            return;
+                        }
+
+                        state.targets = data.targets;
+                        saveState();
+                        renderOverview();
+                        if (document.getElementById('targetsModal').classList.contains('open')) {
+                            renderTargetsTable();
+                        }
+                        alert('Successfully imported targets.');
+
+                    } catch (error) {
+                        console.error('Import error:', error);
+                        alert('Failed to import file. Please ensure it is a valid JSON file.');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function downloadJSON(data, filename) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        let replaceExerciseIndex = null;
+
+        function openReplaceExerciseModal(exerciseIndex) {
+            replaceExerciseIndex = exerciseIndex;
+            document.getElementById('replaceExerciseModal').classList.add('open');
+            renderReplaceExerciseCategories();
+        }
+
+        function closeReplaceExerciseModal() {
+            document.getElementById('replaceExerciseModal').classList.remove('open');
+            document.getElementById('replaceExerciseSearch').value = '';
+            replaceExerciseIndex = null;
+        }
+
+        function renderReplaceExerciseCategories() {
+            const container = document.getElementById('replaceExerciseCategories');
+            const searchTerm = document.getElementById('replaceExerciseSearch').value.toLowerCase();
+            
+            const categories = {};
+            state.exercises.forEach(ex => {
+                if (!categories[ex.category]) {
+                    categories[ex.category] = [];
+                }
+                categories[ex.category].push(ex);
+            });
+
+            const html = Object.keys(categories).map(category => {
+                const exercises = categories[category].filter(ex => 
+                    ex.name.toLowerCase().includes(searchTerm)
+                );
+                if (exercises.length === 0) return '';
+                
+                return `
+                    <div class="exercise-category">
+                        <div class="category-title">${category}</div>
+                        ${exercises.map(ex => `
+                            <div class="exercise-option" onclick="replaceExercise('${ex.id}')">
+                                <div style="font-weight: 600;">${ex.name}</div>
+                                <div style="font-size: 0.75rem; color: var(--color-text-secondary);">
+                                    ${ex.primaryMuscles.join(', ')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html || '<p style="color: var(--color-text-secondary);">No exercises found</p>';
+        }
+
+        function filterReplaceExercises() {
+            renderReplaceExerciseCategories();
+        }
+
+        function replaceExercise(newExerciseId) {
+            if (replaceExerciseIndex === null) return;
+
+            const plan = getCurrentPlan();
+            const exerciseData = plan.week[state.currentDay].exercises[replaceExerciseIndex];
+            exerciseData.exerciseId = newExerciseId;
+
+            saveState();
+            closeReplaceExerciseModal();
+            renderWeekView();
+            renderOverview();
+        }
+
+        init();
+    </script>
+</body>
+</html>
