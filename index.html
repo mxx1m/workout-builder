@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -221,6 +222,15 @@
             color: var(--color-text-secondary);
         }
 
+        /* Feature #3: Week View labels should wrap (no truncation) */
+        .muscle-labels {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            white-space: normal;
+            word-break: break-word;
+            overflow: visible;
+        }
+
         .exercise-actions {
             display: flex;
             gap: 0.5rem;
@@ -411,6 +421,110 @@
         .diff-negative {
             color: var(--color-error);
             font-weight: 600;
+        }
+
+        /* Feature #6: Overview Popover Breakdown */
+        .muscle-cell {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-icon {
+            background: none;
+            border: 1px solid var(--color-border);
+            border-radius: 999px;
+            width: 22px;
+            height: 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+            line-height: 1;
+        }
+
+        .info-icon:hover {
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .overview-popover {
+            position: absolute;
+            z-index: 9999;
+            width: min(360px, calc(100vw - 16px));
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 0.75rem;
+        }
+
+        .popover-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: 0.5rem;
+        }
+
+        .popover-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .popover-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.25rem;
+            color: var(--color-text-secondary);
+            line-height: 1;
+            padding: 0.1rem 0.25rem;
+        }
+
+        .popover-close:hover {
+            color: var(--color-primary);
+        }
+
+        .popover-day {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-top: 0.6rem;
+            margin-bottom: 0.25rem;
+            color: var(--color-text-primary);
+        }
+
+        .popover-list {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .popover-item {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--color-text-secondary);
+        }
+
+        .popover-item .name {
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .popover-item .val {
+            flex: 0 0 auto;
+            font-variant-numeric: tabular-nums;
+            color: var(--color-text-primary);
         }
 
         .sidebar {
@@ -796,6 +910,59 @@
                 grid-template-columns: repeat(2, 1fr);
             }
         }
+
+        /* Feature #5: Week View Set Row mobile layout (Reps/RIR/Load) */
+@media (max-width: 600px) {
+    /* Keep everything on ONE line and allow the inputs to shrink */
+    .set-row {
+        display: flex !important;
+        align-items: center;
+        gap: 0.35rem;
+        flex-wrap: nowrap;
+    }
+
+    /* Make the "Set X" badge smaller on mobile */
+    .set-row .set-badge {
+        min-width: 44px !important;
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+
+    /* Allow the 3 input groups to shrink aggressively */
+    .set-row .set-field {
+        flex: 1 1 0 !important;
+        min-width: 0 !important;
+    }
+
+    .set-row .input-field {
+        width: 100%;
+        min-width: 0;
+        padding: 0.35rem 0.45rem;  /* tighter */
+        font-size: 0.8rem;         /* slightly smaller */
+    }
+
+    /* Keep the remove button narrow */
+    .set-row .set-remove-btn {
+        flex: 0 0 24px !important;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        line-height: 1;
+    }
+
+    /* Header row stays one-line and more compact */
+    .set-header-row {
+        display: flex !important;
+        gap: 0.35rem;
+        padding-left: 44px !important; /* match smaller badge */
+        font-size: 0.7rem;
+        white-space: nowrap;
+    }
+
+    .set-header-row > div {
+        min-width: 0;
+    }
+}
     </style>
 </head>
 <body>
@@ -887,13 +1054,36 @@
         </div>
     </div>
 
-    <div class="modal" id="exerciseManagerModal">
+     <div class="modal" id="exerciseManagerModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Manage Exercises</h3>
                 <button class="close-sidebar" onclick="closeExerciseManager()">×</button>
             </div>
             <div class="modal-body" id="exerciseManagerBody"></div>
+        </div>
+    </div>
+
+    <!-- Feature #2: Plan Rename -->
+    <div class="modal" id="renamePlanModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Rename Plan</h3>
+                <button class="close-sidebar" onclick="closeRenamePlanModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="renamePlanForm" onsubmit="saveRenamedPlan(event)">
+                    <div class="form-group">
+                        <label class="form-label">Plan Name</label>
+                        <input type="text" class="form-input" id="renamePlanInput" required>
+                        <div id="renamePlanError" style="display:none; margin-top:0.5rem; font-size:0.875rem; color: var(--color-error);"></div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="closeRenamePlanModal()">Cancel</button>
+                        <button type="submit" class="btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -974,7 +1164,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Primary Muscles (comma separated)</label>
-                        <input type="text" class="form-input" id="editExercisePrimary" required placeholder="e.g., Chest, Front Delts">
+			<input type="text" class="form-input" id="editExercisePrimary" placeholder="e.g., Chest, Front Delts">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Secondary Muscles (comma separated)</label>
@@ -1140,25 +1330,32 @@
                 const exerciseListHtml = dayData.exercises.map((ex, exIndex) => {
                     const exercise = state.exercises.find(e => e.id === ex.exerciseId);
                     const exerciseName = exercise ? exercise.name : 'Unknown exercise (deleted)';
-                    const muscles = exercise ? `${exercise.primaryMuscles.join(', ')}` : '';
+
+                    const primaryList = (exercise && Array.isArray(exercise.primaryMuscles)) ? exercise.primaryMuscles : [];
+                    const secondaryList = (exercise && Array.isArray(exercise.secondaryMuscles)) ? exercise.secondaryMuscles : [];
+
+                    const primaryText = primaryList.length ? primaryList.join(', ') : 'None';
+                    const secondaryText = secondaryList.length ? secondaryList.join(', ') : 'None';
+
+                    const labels = `P: ${primaryText} | S: ${secondaryText}`;
                     
                     if (!Array.isArray(ex.sets)) {
                         ex.sets = [{ reps: ex.reps || '', rir: ex.rir || '', load: ex.load || '' }];
                     }
                     
                     const setsHtml = ex.sets.map((set, setIndex) => `
-                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; padding: 0.5rem; background: var(--color-bg-primary); border-radius: var(--radius-base);">
-                            <div style="min-width: 60px; font-weight: 600; color: var(--color-text-secondary);">Set ${setIndex + 1}</div>
-                            <div class="input-group" style="flex: 1;">
+                        <div class="set-row" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; padding: 0.5rem; background: var(--color-bg-primary); border-radius: var(--radius-base);">
+                            <div class="set-badge" style="min-width: 60px; font-weight: 600; color: var(--color-text-secondary);">Set ${setIndex + 1}</div>
+                            <div class="input-group set-field" style="flex: 1;">
                                 <input type="text" class="input-field" value="${set.reps || ''}" onchange="updateSetField(${exIndex}, ${setIndex}, 'reps', this.value)" placeholder="8-12" style="margin: 0;">
                             </div>
-                            <div class="input-group" style="flex: 1;">
+                            <div class="input-group set-field" style="flex: 1;">
                                 <input type="number" class="input-field" value="${set.rir || ''}" onchange="updateSetField(${exIndex}, ${setIndex}, 'rir', this.value)" placeholder="1" style="margin: 0;">
                             </div>
-                            <div class="input-group" style="flex: 1;">
+                            <div class="input-group set-field" style="flex: 1;">
                                 <input type="text" class="input-field" value="${set.load || ''}" onchange="updateSetField(${exIndex}, ${setIndex}, 'load', this.value)" placeholder="20kg" style="margin: 0;">
                             </div>
-                            ${ex.sets.length > 1 ? `<button class="icon-btn" onclick="removeSet(${exIndex}, ${setIndex})" style="color: var(--color-error);">×</button>` : ''}
+                            ${ex.sets.length > 1 ? `<button class="icon-btn set-remove-btn" onclick="removeSet(${exIndex}, ${setIndex})" style="color: var(--color-error);">×</button>` : ''}
                         </div>
                     `).join('');
                     
@@ -1168,7 +1365,7 @@
                                 <div class="drag-handle">⋮⋮</div>
                                 <div class="exercise-info">
                                     <div class="exercise-name">${exerciseName}</div>
-                                    <div class="exercise-muscles">${muscles}</div>
+                                    <div class="muscle-labels">${labels}</div>
                                 </div>
                                 <div class="exercise-actions">
                                     ${exercise && exercise.tutorial ? `<button class="icon-btn" onclick="showTutorial('${ex.exerciseId}')">ℹ️</button>` : ''}
@@ -1177,7 +1374,7 @@
                                 </div>
                             </div>
                             <div style="margin-top: 0.75rem;">
-                                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; padding-left: 60px; font-size: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">
+                                <div class="set-header-row" style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; padding-left: 60px; font-size: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">
                                     <div style="flex: 1;">Reps</div>
                                     <div style="flex: 1;">RIR</div>
                                     <div style="flex: 1;">Load</div>
@@ -1372,6 +1569,8 @@
 
         function renderOverview() {
             const container = document.getElementById('overviewView');
+            // Feature #6: close any open popover on rerender
+            closeOverviewPopover();
             const setsPerMuscle = calculateSetsPerMuscle();
 
             const sortPref = state.sortPrefs.overview;
@@ -1403,7 +1602,12 @@
 
                 return `
                     <tr>
-                        <td>${row.muscle}</td>
+                        <td>
+                            <div class="muscle-cell">
+                                <span>${row.muscle}</span>
+                                <button class="info-icon" onclick="openOverviewPopover('${row.muscle}', event)" aria-label="Breakdown">ℹ︎</button>
+                            </div>
+                        </td>
                         <td>${row.actual.toFixed(1)}</td>
                         <td>${row.target.toFixed(1)}</td>
                         <td class="${diffClass}">${diffSign}${row.diff.toFixed(1)}</td>
@@ -1461,18 +1665,193 @@
                         const exercise = state.exercises.find(e => e.id === ex.exerciseId);
                         if (exercise && ex.sets && ex.sets.length > 0) {
                             const numSets = ex.sets.length;
-                            exercise.primaryMuscles.forEach(muscle => {
-                                totals[muscle] = (totals[muscle] || 0) + numSets;
-                            });
-                            exercise.secondaryMuscles.forEach(muscle => {
-                                totals[muscle] = (totals[muscle] || 0) + (numSets * 0.5);
-                            });
+                            // Feature #4: gracefully handle undefined or empty arrays
+(exercise.primaryMuscles || []).forEach(muscle => {
+    totals[muscle] = (totals[muscle] || 0) + numSets;
+});
+(exercise.secondaryMuscles || []).forEach(muscle => {
+    totals[muscle] = (totals[muscle] || 0) + (numSets * 0.5);
+});
                         }
                     });
                 }
             });
 
             return totals;
+        }
+
+        /* Feature #6: Overview Popover Breakdown */
+        let overviewPopoverEl = null;
+        let overviewPopoverOpen = false;
+
+        function getOrCreateOverviewPopover() {
+            if (overviewPopoverEl) return overviewPopoverEl;
+            const el = document.createElement('div');
+            el.className = 'overview-popover';
+            el.style.display = 'none';
+            document.body.appendChild(el);
+            overviewPopoverEl = el;
+            return el;
+        }
+
+        function getMuscleContributionBreakdown(muscle) {
+            const plan = getCurrentPlan();
+            const result = [];
+
+            DAYS.forEach(day => {
+                const dayData = plan.week[day];
+                if (!dayData || dayData.isRest) return;
+
+                const byExerciseName = {};
+                dayData.exercises.forEach(ex => {
+                    const exercise = state.exercises.find(e => e.id === ex.exerciseId);
+                    if (!exercise) return; // unknown/deleted -> ignore (no mapping)
+                    const numSets = (ex.sets && ex.sets.length) ? ex.sets.length : 0;
+                    if (numSets <= 0) return;
+
+                    const primary = exercise.primaryMuscles || [];
+                    const secondary = exercise.secondaryMuscles || [];
+
+                    let contrib = 0;
+                    if (primary.includes(muscle)) contrib = numSets * 1.0;
+                    else if (secondary.includes(muscle)) contrib = numSets * 0.5;
+                    else return;
+
+                    const name = exercise.name || 'Unknown exercise (deleted)';
+                    byExerciseName[name] = (byExerciseName[name] || 0) + contrib;
+                });
+
+                const items = Object.keys(byExerciseName).map(name => ({
+                    name,
+                    contrib: byExerciseName[name]
+                })).filter(i => i.contrib > 0);
+
+                if (items.length > 0) {
+                    result.push({ day, items });
+                }
+            });
+
+            return result;
+        }
+
+        function buildPopoverHtml(muscle) {
+            const breakdown = getMuscleContributionBreakdown(muscle);
+
+            if (breakdown.length === 0) {
+                return `
+            <div class="popover-header">
+                <div class="popover-title">${muscle} breakdown</div>
+                <button class="popover-close" onclick="closeOverviewPopover()">×</button>
+            </div>
+            <div style="font-size:0.85rem; color: var(--color-text-secondary);">No contributions in this plan.</div>
+        `;
+            }
+
+            const sections = breakdown.map(section => {
+                const itemsHtml = section.items.map(item => `
+            <li class="popover-item">
+                <span class="name">• ${item.name}</span>
+                <span class="val">+${item.contrib.toFixed(1)}</span>
+            </li>
+        `).join('');
+
+                return `
+            <div class="popover-day">${section.day}</div>
+            <ul class="popover-list">${itemsHtml}</ul>
+        `;
+            }).join('');
+
+            return `
+        <div class="popover-header">
+            <div class="popover-title">${muscle} breakdown</div>
+            <button class="popover-close" onclick="closeOverviewPopover()">×</button>
+        </div>
+        ${sections}
+    `;
+        }
+
+        function positionPopoverNearAnchor(popEl, anchorRect) {
+            const padding = 8;
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+
+            // Render offscreen to measure
+            popEl.style.visibility = 'hidden';
+            popEl.style.display = 'block';
+
+            const pw = popEl.offsetWidth;
+            const ph = popEl.offsetHeight;
+
+            // Prefer right, else left
+            let left = anchorRect.right + padding;
+            if (left + pw > vw - padding) {
+                left = anchorRect.left - pw - padding;
+            }
+            if (left < padding) left = padding;
+
+            // Prefer below, else above
+            let top = anchorRect.bottom + padding;
+            if (top + ph > vh - padding) {
+                top = anchorRect.top - ph - padding;
+            }
+            if (top < padding) top = padding;
+
+            popEl.style.left = `${left + window.scrollX}px`;
+            popEl.style.top = `${top + window.scrollY}px`;
+            popEl.style.visibility = 'visible';
+        }
+
+        function openOverviewPopover(muscle, ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+
+            const popEl = getOrCreateOverviewPopover();
+
+            // Close previous (only one open at a time)
+            if (overviewPopoverOpen) closeOverviewPopover();
+
+            popEl.innerHTML = buildPopoverHtml(muscle);
+
+            const anchorRect = ev.currentTarget.getBoundingClientRect();
+            positionPopoverNearAnchor(popEl, anchorRect);
+
+            overviewPopoverOpen = true;
+
+            // Outside click to close (mouse + touch)
+            setTimeout(() => {
+                document.addEventListener('mousedown', handleOverviewPopoverOutside, true);
+                document.addEventListener('touchstart', handleOverviewPopoverOutside, true);
+                window.addEventListener('resize', closeOverviewPopover, { passive: true });
+                window.addEventListener('scroll', closeOverviewPopover, { passive: true });
+            }, 0);
+        }
+
+        function handleOverviewPopoverOutside(e) {
+            const popEl = overviewPopoverEl;
+            if (!overviewPopoverOpen || !popEl) return;
+
+            const target = e.target;
+            // If click is inside popover or on an info icon, ignore
+            if (popEl.contains(target)) return;
+            if (target && target.closest && target.closest('.info-icon')) return;
+
+            closeOverviewPopover();
+        }
+
+        function closeOverviewPopover() {
+            if (!overviewPopoverOpen) return;
+
+            if (overviewPopoverEl) {
+                overviewPopoverEl.style.display = 'none';
+                overviewPopoverEl.innerHTML = '';
+            }
+
+            overviewPopoverOpen = false;
+
+            document.removeEventListener('mousedown', handleOverviewPopoverOutside, true);
+            document.removeEventListener('touchstart', handleOverviewPopoverOutside, true);
+            window.removeEventListener('resize', closeOverviewPopover);
+            window.removeEventListener('scroll', closeOverviewPopover);
         }
 
         function sortOverview(column) {
@@ -1526,6 +1905,7 @@
                         <div class="plan-date">Updated: ${new Date(plan.lastUpdated).toLocaleDateString()}</div>
                     </div>
                     <div class="plan-actions">
+                        <button class="icon-btn" onclick="event.stopPropagation(); openRenamePlanModal('${plan.id}')" title="Rename">✏️</button>
                         <button class="icon-btn" onclick="event.stopPropagation(); duplicatePlan('${plan.id}')" title="Duplicate">📋</button>
                         ${plan.id !== state.currentPlanId ? `<button class="icon-btn" onclick="event.stopPropagation(); deletePlan(event, '${plan.id}')" title="Delete">🗑️</button>` : ''}
                     </div>
@@ -1564,6 +1944,91 @@
             }
         }
 
+        // Feature #2: Plan Rename
+        let renamingPlanId = null;
+
+        function openRenamePlanModal(planId) {
+            const plan = state.plans.find(p => p.id === planId);
+            if (!plan) return;
+
+            renamingPlanId = planId;
+
+            const modal = document.getElementById('renamePlanModal');
+            const input = document.getElementById('renamePlanInput');
+            const error = document.getElementById('renamePlanError');
+
+            if (error) {
+                error.style.display = 'none';
+                error.textContent = '';
+            }
+
+            if (input) {
+                input.value = plan.name || '';
+                // focus + select for quick rename
+                setTimeout(() => {
+                    input.focus();
+                    input.select();
+                }, 0);
+            }
+
+            modal.classList.add('open');
+        }
+
+        function closeRenamePlanModal() {
+            const modal = document.getElementById('renamePlanModal');
+            const error = document.getElementById('renamePlanError');
+
+            if (error) {
+                error.style.display = 'none';
+                error.textContent = '';
+            }
+
+            modal.classList.remove('open');
+            renamingPlanId = null;
+        }
+
+        function saveRenamedPlan(event) {
+            event.preventDefault();
+            if (!renamingPlanId) return;
+
+            const input = document.getElementById('renamePlanInput');
+            const error = document.getElementById('renamePlanError');
+            const raw = (input ? input.value : '');
+            const nextName = raw.trim();
+
+            if (!nextName) {
+                if (error) {
+                    error.textContent = 'Please enter a plan name.';
+                    error.style.display = 'block';
+                } else {
+                    alert('Please enter a plan name.');
+                }
+                return;
+            }
+
+            const plan = state.plans.find(p => p.id === renamingPlanId);
+            if (!plan) return;
+
+            plan.name = nextName;
+            plan.lastUpdated = new Date().toISOString();
+
+            saveState();
+            closeRenamePlanModal();
+
+            // Refresh places where plan name can appear
+            renderAll();
+        }
+
+        // Esc closes rename modal (doesn't affect other modals)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('renamePlanModal');
+                if (modal && modal.classList.contains('open')) {
+                    closeRenamePlanModal();
+                }
+            }
+        });
+
         function openExerciseManager() {
             const modal = document.getElementById('exerciseManagerModal');
             modal.classList.add('open');
@@ -1575,28 +2040,109 @@
             modal.classList.remove('open');
         }
 
+        // Feature #1: Manage Exercises Search (persisted while app runs)
+        let exerciseManagerSearchQuery = '';
+
+        function filterManageExercises() {
+            const input = document.getElementById('exerciseManagerSearch');
+            exerciseManagerSearchQuery = (input ? input.value : '').toLowerCase();
+            renderExerciseManagerList();
+        }
+
+        function exerciseMatchesManagerQuery(ex, q) {
+            if (!q) return true;
+            const haystack = [
+                ex.name || '',
+                ex.category || '',
+                ...(Array.isArray(ex.primaryMuscles) ? ex.primaryMuscles : []),
+                ...(Array.isArray(ex.secondaryMuscles) ? ex.secondaryMuscles : [])
+            ].join(' ').toLowerCase();
+
+            return haystack.includes(q);
+        }
+
         function renderExerciseManager() {
             const container = document.getElementById('exerciseManagerBody');
-            container.innerHTML = `
-                <button class="new-plan-btn" style="margin-bottom: 1rem;" onclick="event.preventDefault(); addNewExercise();">+ Add New Exercise</button>
-                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                    ${state.exercises.map(ex => `
-                        <div style="padding: 1rem; background: var(--color-bg-primary); border: 1px solid var(--color-border); border-radius: var(--radius-base);">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                                <div style="font-weight: 600;">${ex.name}</div>
-                                <div style="display: flex; gap: 0.5rem;">
-                                    <button class="icon-btn" onclick="event.preventDefault(); editExercise('${ex.id}')">✏️</button>
-                                    <button class="icon-btn" onclick="event.preventDefault(); deleteExercise('${ex.id}')">🗑️</button>
+
+            // Render skeleton once, then only update the list (prevents cursor jump while typing)
+            if (!document.getElementById('exerciseManagerSearch')) {
+                container.innerHTML = `
+                    <button class="new-plan-btn" style="margin-bottom: 1rem;" onclick="event.preventDefault(); addNewExercise();">+ Add New Exercise</button>
+                    <input
+                        type="text"
+                        class="search-input"
+                        id="exerciseManagerSearch"
+                        placeholder="Search exercises..."
+                        value="${exerciseManagerSearchQuery.replace(/"/g, '&quot;')}"
+                        oninput="filterManageExercises()"
+                        style="margin-bottom: 1rem;"
+                    >
+                    <div id="exerciseManagerList"></div>
+                `;
+            } else {
+                // Keep query active across CRUD re-renders
+                const input = document.getElementById('exerciseManagerSearch');
+                if (input && input.value.toLowerCase() !== exerciseManagerSearchQuery) {
+                    input.value = exerciseManagerSearchQuery;
+                }
+            }
+
+            renderExerciseManagerList();
+        }
+
+        function renderExerciseManagerList() {
+            const listEl = document.getElementById('exerciseManagerList');
+            if (!listEl) return;
+
+            const q = (exerciseManagerSearchQuery || '').toLowerCase();
+
+            // Filter first (case-insensitive) across name/category/primary/secondary
+            const filtered = state.exercises.filter(ex => exerciseMatchesManagerQuery(ex, q));
+
+            // Group by category (show header only if category has matches)
+            const categories = {};
+            const categoryOrder = [];
+            filtered.forEach(ex => {
+                const cat = ex.category || 'Uncategorized';
+                if (!categories[cat]) {
+                    categories[cat] = [];
+                    categoryOrder.push(cat);
+                }
+                categories[cat].push(ex);
+            });
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `<p style="color: var(--color-text-secondary);">No results</p>`;
+                return;
+            }
+
+            listEl.innerHTML = categoryOrder.map(category => {
+                const exercises = categories[category] || [];
+                if (exercises.length === 0) return '';
+
+                return `
+                    <div class="exercise-category" style="margin-bottom: 1.25rem;">
+                        <div class="category-title">${category}</div>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            ${exercises.map(ex => `
+                                <div style="padding: 1rem; background: var(--color-bg-primary); border: 1px solid var(--color-border); border-radius: var(--radius-base);">
+                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                        <div style="font-weight: 600;">${ex.name}</div>
+                                        <div style="display: flex; gap: 0.5rem;">
+                                            <button class="icon-btn" onclick="event.preventDefault(); editExercise('${ex.id}')">✏️</button>
+                                            <button class="icon-btn" onclick="event.preventDefault(); deleteExercise('${ex.id}')">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: var(--color-text-secondary);">
+                                        <div><strong>Primary:</strong> ${ex.primaryMuscles.join(', ')}</div>
+                                        <div><strong>Secondary:</strong> ${ex.secondaryMuscles.join(', ') || 'None'}</div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div style="font-size: 0.75rem; color: var(--color-text-secondary);">
-                                <div><strong>Primary:</strong> ${ex.primaryMuscles.join(', ')}</div>
-                                <div><strong>Secondary:</strong> ${ex.secondaryMuscles.join(', ') || 'None'}</div>
-                            </div>
+                            `).join('')}
                         </div>
-                    `).join('')}
-                </div>
-            `;
+                    </div>
+                `;
+            }).join('');
         }
 
         function addNewExercise() {
@@ -1636,8 +2182,20 @@
             
             const name = document.getElementById('editExerciseName').value;
             const category = document.getElementById('editExerciseCategory').value;
-            const primary = document.getElementById('editExercisePrimary').value.split(',').map(m => m.trim()).filter(m => m);
-            const secondary = document.getElementById('editExerciseSecondary').value.split(',').map(m => m.trim()).filter(m => m);
+// Feature #4: Primary optional, aber insgesamt muss eine Muskelgruppe vorhanden sein
+const primary = document.getElementById('editExercisePrimary').value
+    .split(',')
+    .map(m => m.trim())
+    .filter(m => m);
+const secondary = document.getElementById('editExerciseSecondary').value
+    .split(',')
+    .map(m => m.trim())
+    .filter(m => m);
+// Validierung: wenn beide Arrays leer sind, Speichern blockieren
+if (primary.length === 0 && secondary.length === 0) {
+    alert('Please enter at least one muscle group (Primary or Secondary).');
+    return;
+}
             const tutorial = document.getElementById('editExerciseTutorial').value;
 
             if (editingExerciseId.startsWith('new_')) {
